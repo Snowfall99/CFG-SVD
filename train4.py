@@ -17,7 +17,7 @@ startTime = time.time()
 good_label = 0
 bad_label = 0
 
-datapath = r"/home/chenzx/testcases/CWE121_Stack_Based_Buffer_Overflow"
+datapath = r"/home/chenzx/testcases/CWE762_Mismatched_Memory_Management_Routines"
 
 dataset = path2data1.loadPath2DataSet(datapath)
 
@@ -106,6 +106,21 @@ class Net(torch.nn.Module):
         self.conv5 = GCNConv(128, 128)
         self.pool5 = TopKPooling(128, ratio=0.8)
 
+        self.convAtt1 = torch.nn.Conv1d(in_channels=256, out_channels=64, kernel_size=1, stride=2)
+        self.poolAtt1 = torch.nn.MaxPool1d(kernel_size=1, stride=2)
+        self.convAtt2 = torch.nn.Conv1d(64, 16, kernel_size=1, stride=2)
+        self.poolAtt2 = torch.nn.MaxPool1d(kernel_size=1, stride=2)
+        self.convAtt3 = torch.nn.Conv1d(16, 2, kernel_size=1, stride=2)
+        self.poolAtt3 = torch.nn.MaxPool1d(kernel_size=1, stride=2)
+
+        self.convAtt4 = torch.nn.Conv1d(2, 16, kernel_size=1, stride=2)
+        self.poolAtt4 = torch.nn.MaxPool1d(kernel_size=1, stride=2)
+        self.convAtt5 = torch.nn.Conv1d(16, 64, kernel_size=1, stride=2)
+        self.poolAtt5 = torch.nn.MaxPool1d(kernel_size=1, stride=2)
+        self.convAtt6 = torch.nn.Conv1d(64, 256, kernel_size=1, stride=2)
+        self.poolAtt6 = torch.nn.MaxPool1d(kernel_size=1, stride=2)
+
+
         self.lin1 = torch.nn.Linear(256, 128)
         self.lin2 = torch.nn.Linear(128, 64)
         self.lin3 = torch.nn.Linear(64, 2)
@@ -138,6 +153,28 @@ class Net(torch.nn.Module):
         x5 = torch.cat([gmp(x, batch), gap(x, batch)], dim=1)
 
         x = x1 + x2 + x3 + x4 + x5
+        
+        sx = x
+
+        x = x.unsqueeze(dim=2)
+        # attention层
+        x = F.relu(self.convAtt1(x))
+        x = self.poolAtt1(x)
+        x = F.relu(self.convAtt2(x))
+        x = self.poolAtt2(x)
+        x = F.relu(self.convAtt3(x))
+        x = self.poolAtt3(x)
+
+        x = F.relu(self.convAtt4(x))
+        x = self.poolAtt4(x)
+        x = F.relu(self.convAtt5(x))
+        x = self.poolAtt5(x)
+        x = F.relu(self.convAtt6(x))
+        x = self.poolAtt6(x)
+
+        x = x.squeeze()
+
+        x = (x + 1) * sx
 
         x = F.relu(self.lin1(x))
         x = F.dropout(x, p=0.5, training=self.training)
