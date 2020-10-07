@@ -8,7 +8,7 @@ from torch_geometric.data import Data
 
 
 pattern_CWE = re.compile(r'CWE[1-9]\d*')
-w2vmodel = gensim.models.Word2Vec.load(r"/home/chenzx/w2vmodel/CWE762.model")
+w2vmodel = gensim.models.Word2Vec.load(r"/home/chenzx/train/word2vec.model")
 
 
 
@@ -41,7 +41,7 @@ def Dot_to_Data(dot, cwe_label, label):
     for i, node in enumerate(node_list):
         value = node.obj_dict['attributes']['label']
         tokens = utils.preprocessing(value)
-        tokenvec = np.zeros((128,), dtype=float)
+        tokenvec = np.zeros((256,), dtype=float)
         token_number = len(tokens)
         for token in tokens:
             if token in w2vmodel.wv:

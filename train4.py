@@ -19,7 +19,7 @@ bad_label = 0
 
 datapath = r"/home/chenzx/testcases/CWE762_Mismatched_Memory_Management_Routines"
 
-dataset = path2data1.loadPath2DataSet(datapath)
+dataset = path2datafff.loadPath2DataSet(datapath)
 
 random.shuffle(dataset)
 lenDataset = len(dataset)
@@ -92,21 +92,21 @@ class Net(torch.nn.Module):
     def __init__(self):
         super(Net, self).__init__()
 
-        self.conv1 = GCNConv(128, 128)
+        self.conv1 = GCNConv(256, 256)
         # self.conv1 = GraphConv(128, 128)
-        self.pool1 = TopKPooling(128, ratio=0.8)
-        self.conv2 = GCNConv(128, 128)
+        self.pool1 = TopKPooling(256, ratio=0.8)
+        self.conv2 = GCNConv(256, 256)
         # self.conv2 = GraphConv(128, 128)
-        self.pool2 = TopKPooling(128, ratio=0.8)
-        self.conv3 = GCNConv(128, 128)
+        self.pool2 = TopKPooling(256, ratio=0.8)
+        self.conv3 = GCNConv(256, 256)
         # self.conv3 = GraphConv(128, 128)
-        self.pool3 = TopKPooling(128, ratio=0.8)
-        self.conv4 = GCNConv(128, 128)
-        self.pool4 = TopKPooling(128, ratio=0.8)
-        self.conv5 = GCNConv(128, 128)
-        self.pool5 = TopKPooling(128, ratio=0.8)
+        self.pool3 = TopKPooling(256, ratio=0.8)
+        self.conv4 = GCNConv(256, 256)
+        self.pool4 = TopKPooling(256, ratio=0.8)
+        self.conv5 = GCNConv(256, 256)
+        self.pool5 = TopKPooling(256, ratio=0.8)
 
-        self.convAtt1 = torch.nn.Conv1d(in_channels=256, out_channels=64, kernel_size=1, stride=2)
+        self.convAtt1 = torch.nn.Conv1d(in_channels=512, out_channels=64, kernel_size=1, stride=2)
         self.poolAtt1 = torch.nn.MaxPool1d(kernel_size=1, stride=2)
         self.convAtt2 = torch.nn.Conv1d(64, 16, kernel_size=1, stride=2)
         self.poolAtt2 = torch.nn.MaxPool1d(kernel_size=1, stride=2)
@@ -117,11 +117,10 @@ class Net(torch.nn.Module):
         self.poolAtt4 = torch.nn.MaxPool1d(kernel_size=1, stride=2)
         self.convAtt5 = torch.nn.Conv1d(16, 64, kernel_size=1, stride=2)
         self.poolAtt5 = torch.nn.MaxPool1d(kernel_size=1, stride=2)
-        self.convAtt6 = torch.nn.Conv1d(64, 256, kernel_size=1, stride=2)
+        self.convAtt6 = torch.nn.Conv1d(64, 512, kernel_size=1, stride=2)
         self.poolAtt6 = torch.nn.MaxPool1d(kernel_size=1, stride=2)
 
-
-        self.lin1 = torch.nn.Linear(256, 128)
+        self.lin1 = torch.nn.Linear(512, 128)
         self.lin2 = torch.nn.Linear(128, 64)
         self.lin3 = torch.nn.Linear(64, 2)
 
@@ -153,6 +152,8 @@ class Net(torch.nn.Module):
         x5 = torch.cat([gmp(x, batch), gap(x, batch)], dim=1)
 
         x = x1 + x2 + x3 + x4 + x5
+
+        x = 1/5 * x 
         
         sx = x
 
@@ -221,18 +222,18 @@ def myTest(loader):
         preds = model(x, edge_index, batch).max(dim=1)[1]
         correct += preds.eq(data.y).sum().item()
         for i in range(len(preds)):
-            if preds[i] == 1 and data.y[i] == 1:
+            if preds[i] == 0 and data.y[i] == 0:
                 tp += 1
-                pred_good += 1
-            elif preds[i] == 1 and data.y[i] == 0:
-                fp += 1
-                pred_good += 1
-            elif preds[i] == 0 and data.y[i] == 0:
-                tn += 1
                 pred_bad += 1
             elif preds[i] == 0 and data.y[i] == 1:
-                fn += 1
+                fp += 1
                 pred_bad += 1
+            elif preds[i] == 1 and data.y[i] == 1:
+                tn += 1
+                pred_good += 1
+            elif preds[i] == 1 and data.y[i] == 0:
+                fn += 1
+                pred_good += 1
     # print("pred_good: %d, pred_bad: %d" % (pred_good, pred_bad))
     return correct / len(loader.dataset), tp, fp, tn, fn, pred_good, pred_bad
 
