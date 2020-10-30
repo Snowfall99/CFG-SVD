@@ -17,7 +17,7 @@ startTime = time.time()
 good_label = 0
 bad_label = 0
 
-datapath = r"/home/chenzx/testcases/CWE762_Mismatched_Memory_Management_Routines"
+datapath = r"/home/chenzx/testcases/CWE789_Uncontrolled_Mem_Alloc"
 
 dataset = path2datafff.loadPath2DataSet(datapath)
 
