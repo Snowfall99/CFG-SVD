@@ -11,15 +11,17 @@ import random
 import numpy as np
 from torch_geometric.nn import global_mean_pool as gap, global_max_pool as gmp
 import time
+import matplotlib.pyplot as plt
 
 startTime = time.time()
 
 good_label = 0
 bad_label = 0
 
-datapath = r"/home/chenzx/testcases/CWE762_Mismatched_Memory_Management_Routines"
+datapath = r"/home/chenzx/testcases/CWE590_Free_Memory_Not_on_Heap"
+# datapath = r"/home/chenzx/CWE121_Stack_Based_Buffer_Overflow__CWE129_fgets_41"
 
-dataset = path2datafff.loadPath2DataSet(datapath)
+dataset = path2data1.loadPath2DataSet(datapath)
 
 random.shuffle(dataset)
 lenDataset = len(dataset)
@@ -237,14 +239,31 @@ def myTest(loader):
     # print("pred_good: %d, pred_bad: %d" % (pred_good, pred_bad))
     return correct / len(loader.dataset), tp, fp, tn, fn, pred_good, pred_bad
 
-for epoch in range(1, 201):
+trainLoss = np.zeros(200)
+testAcc = np.zeros(200)
+
+for epoch in range(1, 200):
     loss = train(epoch)
     train_acc, tp, fp, tn, fn, pred_good, pred_bad = myTest(trainloader)
     test_acc, tp, fp, tn, fn, pred_good, pred_bad = myTest(testloader)
+    trainLoss[epoch] = loss
+    testAcc[epoch] = test_acc
     print('Epoch: {:03d}, Loss: {:.5f}, Train Acc: {:.5f},Test Acc: {:.5f}, TP: {:04d}, FP: {:04d}, TN: {:04d}, FN: {:04d}, Pred_good: {:04d}, Pred_bad: {:04d}'.
           format(epoch, loss, train_acc, test_acc, tp, fp, tn, fn, pred_good, pred_bad))
 
 finishTime = time.time()
+
+x = np.arange(0, 200, 1)
+plt.xlabel("iteration")
+plt.ylabel("train loss")
+plt.plot(x, trainLoss)
+plt.savefig("/home/chenzx/train/figure/590loss.png")
+
+plt.close()
+plt.xlabel("iteration")
+plt.ylabel("test accuracy")
+plt.plot(x, testAcc)
+plt.savefig("/home/chenzx/train/figure/590acc.png")
 
 print("dataloading time: ", finishDataLoadingTime-startTime)
 print("training and testing time: ", finishTime-finishDataLoadingTime)
